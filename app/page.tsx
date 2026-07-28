@@ -1,7 +1,6 @@
-import { Dashboard } from "@/components/dashboard";
-import { companies } from "@/lib/companies";
-import { thesisOpportunities } from "@/lib/thesis";
+import { redirect } from "next/navigation";
 
 export default function HomePage() {
-  return <Dashboard companies={companies} thesis={thesisOpportunities} />;
+  // Redirect home to /app
+  redirect("/app");
 }

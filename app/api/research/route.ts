@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { calculateTotalScore, clampScore, recommendationFromScore } from "@/lib/scoring";
 import { companies } from "@/lib/companies";
 import { thesisById } from "@/lib/thesis";
@@ -54,8 +55,17 @@ function unique(items: string[]) {
   return [...new Set(items)];
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const companyName = typeof body.companyName === "string" ? body.companyName.trim() : "";
     const website = typeof body.website === "string" ? body.website.trim() : "";

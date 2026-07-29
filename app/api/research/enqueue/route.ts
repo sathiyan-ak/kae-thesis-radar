@@ -43,12 +43,34 @@ export async function POST(request: NextRequest) {
       user.id
     );
 
-    // TODO: Enqueue Trigger.dev task here
-    // For now, return run ID for client to poll
+    // Attempt to enqueue Trigger.dev task
+    // If TRIGGER_API_KEY not configured, task will not execute
+    // Research run will remain in "queued" state
+    try {
+      const { enqueueResearch } = await import("@/lib/trigger/research");
+      const enqueuedSuccessfully = await enqueueResearch(
+        run.id,
+        companyId,
+        profile.workspace_id
+      );
+
+      if (!enqueuedSuccessfully) {
+        console.warn(
+          `[research] Run ${run.id} created but not enqueued - TRIGGER_API_KEY not configured`
+        );
+      }
+    } catch (error) {
+      console.error("[research] Failed to enqueue task:", error);
+      // Continue anyway - research run is created, task execution optional
+    }
 
     return NextResponse.json(
-      { runId: run.id, status: run.status },
-      { status: 201 }
+      {
+        runId: run.id,
+        status: run.status,
+        note: "Research task enqueued. Use /api/research/[runId]/progress to poll for updates."
+      },
+      { status: 202 }
     );
   } catch (error) {
     console.error("[research/enqueue]", error);

@@ -1,41 +1,102 @@
-import { NextResponse } from "next/server";
-import { companies } from "@/lib/companies";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return NextResponse.json({ mode: "local", companies });
+export async function GET(request: NextRequest) {
+  const supabase = await createClient();
 
-  const { data, error } = await supabase.from("screened_companies").select("*").order("updated_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ mode: "supabase", companies: data });
-}
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export async function POST(request: Request) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
-
-  const body = await request.json();
-  if (!body?.name || !body?.thesis_id || typeof body?.total_score !== "number") {
-    return NextResponse.json({ error: "name, thesis_id and total_score are required." }, { status: 400 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase.from("screened_companies").upsert({
-    name: body.name,
-    website: body.website ?? null,
-    thesis_id: body.thesis_id,
-    recommendation: body.recommendation ?? "Monitor",
-    total_score: body.total_score,
-    score_breakdown: body.score_breakdown ?? {},
-    evidence: body.evidence ?? [],
-    risks: body.risks ?? [],
-    diligence_questions: body.diligence_questions ?? [],
-    analyst_notes: body.analyst_notes ?? null,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "name,thesis_id" }).select().single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("workspace_id")
+    .eq("id", user.id)
+    .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ company: data }, { status: 201 });
+  if (!profile) {
+    return NextResponse.json(
+      { error: "User profile not found" },
+      { status: 404 }
+    );
+  }
+
+  const { data: companies, error } = await supabase
+    .from("companies")
+    .select("id, canonical_name, domain, status")
+    .eq("workspace_id", profile.workspace_id)
+    .limit(100);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ companies });
+}
+
+export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("workspace_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) {
+    return NextResponse.json(
+      { error: "User profile not found" },
+      { status: 404 }
+    );
+  }
+
+  const body = await request.json();
+
+  if (!body?.canonical_name || !body?.domain) {
+    return NextResponse.json(
+      { error: "canonical_name and domain required" },
+      { status: 400 }
+    );
+  }
+
+  const slug = body.canonical_name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+
+  const { data: company, error } = await supabase
+    .from("companies")
+    .insert({
+      workspace_id: profile.workspace_id,
+      canonical_name: body.canonical_name,
+      slug,
+      domain: body.domain,
+      legal_name: body.legal_name || null,
+      description: body.description || null,
+      headquarters: body.headquarters || null,
+      founded_year: body.founded_year || null,
+      status: body.status || "active",
+      created_by: user.id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ company }, { status: 201 });
 }

@@ -43,10 +43,7 @@ export async function POST(request: NextRequest) {
       user.id
     );
 
-    // Attempt to enqueue Trigger.dev task
-    // If TRIGGER_SECRET_KEY not configured, research will not execute
-    // Research run remains in "queued" state
-    let enqueuedSuccessfully = false;
+    // Enqueue Trigger.dev task - required for research execution
     try {
       const { enqueueResearch } = await import("@/lib/trigger/research");
       const result = await enqueueResearch(
@@ -56,25 +53,31 @@ export async function POST(request: NextRequest) {
       );
 
       if (!result.success) {
-        console.warn(
-          `[research] Run ${run.id} created but not enqueued - ${result.reason || "unknown reason"}`
+        return NextResponse.json(
+          {
+            error: "Research execution is not configured",
+            reason: result.reason,
+          },
+          { status: 503 }
         );
-      } else {
-        enqueuedSuccessfully = true;
       }
+
+      return NextResponse.json(
+        {
+          runId: run.id,
+          status: run.status,
+          taskHandle: result.taskHandle,
+          note: "Research task enqueued. Use /api/research/[runId]/progress to poll for updates.",
+        },
+        { status: 202 }
+      );
     } catch (error) {
       console.error("[research] Failed to enqueue task:", error);
-      // Continue anyway - research run is created, task execution optional
+      return NextResponse.json(
+        { error: "Failed to enqueue research task" },
+        { status: 500 }
+      );
     }
-
-    return NextResponse.json(
-      {
-        runId: run.id,
-        status: run.status,
-        note: "Research task enqueued. Use /api/research/[runId]/progress to poll for updates."
-      },
-      { status: 202 }
-    );
   } catch (error) {
     console.error("[research/enqueue]", error);
     return NextResponse.json(

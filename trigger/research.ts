@@ -1,4 +1,4 @@
-import { task, logger } from "@trigger.dev/sdk/v3";
+import { task, logger } from "@trigger.dev/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { updateResearchRunStatus, recordProviderRun } from "@/lib/research/orchestrator";
 import { RESEARCH_STAGES } from "@/lib/research/stages";

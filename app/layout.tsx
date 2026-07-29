@@ -14,11 +14,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const base = new URL(`${protocol}://${host}`);
   return {
     metadataBase: base,
-    title: "Kae Thesis Radar",
-    description: "A focused investment research workspace for thesis-led screening.",
+    title: "Opportunity Radar — Kae Healthtech Edition",
+    description: "Independent healthtech research work sample. Not affiliated with Kae Capital.",
     openGraph: {
-      title: "Kae Thesis Radar",
-      description: "Evidence-led company screening",
+      title: "Opportunity Radar — Kae Healthtech Edition",
+      description: "Independent evidence-led healthtech research work sample",
       images: [{ url: "/og.png", width: 1200, height: 630 }],
     },
     twitter: { card: "summary_large_image", images: ["/og.png"] },

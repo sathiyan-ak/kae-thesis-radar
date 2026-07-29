@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Activity, BookOpen, BriefcaseBusiness, Building2, ChevronRight, CircleGauge,
-  Database, FileSearch, FlaskConical, Menu, Plus, Search, Settings, X
+  Database, FlaskConical, Menu, Plus, Search, Settings, X
 } from "lucide-react";
 
 const nav = [
@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="app">
       <aside className={`sidebar ${open ? "open" : ""}`}>
-        <div className="brand"><span className="brand-mark">K</span>Kae Thesis Radar <span className="demo-tag">Demo</span></div>
+        <div className="brand"><span className="brand-mark">OR</span><span className="brand-copy">Opportunity Radar<small>Kae Healthtech Edition</small></span><span className="demo-tag">Work sample</span></div>
         <nav className="nav" aria-label="Primary">
           <div className="nav-label">Workspace</div>
           {nav.map(([href, label, Icon]) => (
@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="sidebar-bottom">
           <div className="provider">
             <div className="provider-row"><strong>Provider status</strong><span className="dot" /></div>
-            <small>Research provider unavailable</small>
+            <small>No live provider connected</small>
           </div>
           <Link href="/settings" className="user">
             <Settings size={16} /><span>Settings</span>

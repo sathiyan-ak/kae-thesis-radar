@@ -1,2 +1,2 @@
-import { PlaceholderView } from "@/components/views";
-export default function Page(){return <PlaceholderView title="Companies"/>}
+import { CompaniesView } from "@/components/views";
+export default function Page(){return <CompaniesView/>}

@@ -29,8 +29,10 @@ button { color: inherit; }
 
 .app { min-height: 100vh; }
 .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; width: 232px; display: flex; flex-direction: column; border-right: 1px solid var(--border); background: #f8f9f7; }
-.brand { height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 18px; border-bottom: 1px solid var(--border); font-weight: 650; letter-spacing: -.01em; }
-.brand-mark { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 6px; background: var(--text); color: white; font-size: 12px; }
+.brand { min-height: 72px; display: flex; align-items: center; gap: 9px; padding: 0 14px; border-bottom: 1px solid var(--border); font-weight: 650; letter-spacing: -.01em; }
+.brand-mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; background: var(--text); color: white; font-size: 10px; }
+.brand-copy { line-height: 1.2; }
+.brand-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 520; }
 .demo-tag { margin-left: auto; padding: 2px 6px; border: 1px solid var(--border-strong); border-radius: 4px; color: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 .nav { padding: 14px 10px; }
 .nav-label { padding: 10px 8px 6px; color: var(--faint); font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .06em; }
@@ -85,6 +87,7 @@ button { color: inherit; }
 .section-gap { margin-top: 16px; }
 
 .table-wrap { overflow: auto; }
+.table-wrap, .thesis-layout > *, .company-grid > * { min-width: 0; max-width: 100%; }
 table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 th { position: sticky; top: 0; z-index: 2; height: 40px; padding: 0 12px; border-bottom: 1px solid var(--border-strong); background: #f7f8f6; color: var(--muted); text-align: left; font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .045em; white-space: nowrap; }
 td { height: 44px; padding: 0 12px; border-bottom: 1px solid var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -149,6 +152,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .stage strong { display: block; font-weight: 590; }
 .stage small { color: var(--muted); }
 .notice { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid #dfc998; border-radius: 7px; background: var(--warning-soft); color: #654e21; }
+.notice.independent { border-color: var(--border-strong); background: var(--surface); color: var(--text); }
 .notice svg { flex: 0 0 auto; margin-top: 2px; }
 .thesis-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; }
 .detail-panel { position: sticky; top: 80px; }
@@ -156,6 +160,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .detail-panel h3 { margin: 0 0 6px; font-size: 17px; }
 .detail-panel p { color: var(--muted); line-height: 1.6; }
 .mobile-menu { display: none; }
+.scroll-hint { display: none; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 580; }
 
 @media (max-width: 920px) {
   .sidebar { transform: translateX(-100%); }
@@ -180,9 +185,19 @@ tbody tr:last-child td { border-bottom: 0; }
   .company-title { flex-wrap: wrap; }
   .company-actions { width: 100%; margin-left: 0; padding-top: 10px; }
   .toolbar { flex-wrap: wrap; }
+  .toolbar .control { min-width: min(100%, 170px); flex: 1; }
+  .toolbar .button { flex: 1 1 132px; }
   .toolbar .push { margin-left: 0; }
   .claim { grid-template-columns: 1fr 32px; }
   .claim > :not(:first-child):not(:last-child) { display: none; }
   .stage { grid-template-columns: 24px 1fr 76px; }
   .stage > :nth-child(3), .stage > :nth-child(5) { display: none; }
+  .scroll-hint { display: block; }
+  .dealflow-table { position: relative; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+  .dealflow-table table { min-width: 1280px; }
+  .dealflow-table .sticky-company { position: sticky; left: 39px; z-index: 3; background: var(--surface); box-shadow: 1px 0 0 var(--border); }
+  .dealflow-table th.sticky-company { z-index: 5; background: #f7f8f6; }
+  .dealflow-table tbody tr:hover .sticky-company { background: #f6f8f5; }
+  .brand { padding-right: 10px; }
+  .demo-tag { font-size: 9px; }
 }

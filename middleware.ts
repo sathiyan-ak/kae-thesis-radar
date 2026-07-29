@@ -1,26 +1,46 @@
+import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-  // TODO: Phase 2 - Implement Supabase auth check
-  // For now, allow all requests to pass through
-  // In production, this will:
-  // 1. Check for valid session token
-  // 2. Redirect unauthenticated users to /login
-  // 3. Redirect authenticated users away from /login
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
-  return NextResponse.next();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
+  const { data } = await supabase.auth.getSession();
+  const pathname = request.nextUrl.pathname;
+
+  // Redirect unauthenticated users to /login (except API routes and public paths)
+  if (!data.session && pathname.startsWith("/app")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Redirect authenticated users away from login
+  if (data.session && pathname === "/login") {
+    return NextResponse.redirect(new URL("/app", request.url));
+  }
+
+  return supabaseResponse;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
+    "/((?!_next/static|_next/image|favicon.ico|public|api).*)",
   ],
 };

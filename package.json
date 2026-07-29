@@ -16,7 +16,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.57.4",
-    "@trigger.dev/sdk": "^3.0.0",
+    "@trigger.dev/sdk": "^4.5.8",
     "lucide-react": "^0.468.0",
     "next": "15.5.21",
     "react": "19.1.2",

@@ -44,20 +44,23 @@ export async function POST(request: NextRequest) {
     );
 
     // Attempt to enqueue Trigger.dev task
-    // If TRIGGER_API_KEY not configured, task will not execute
-    // Research run will remain in "queued" state
+    // If TRIGGER_SECRET_KEY not configured, research will not execute
+    // Research run remains in "queued" state
+    let enqueuedSuccessfully = false;
     try {
       const { enqueueResearch } = await import("@/lib/trigger/research");
-      const enqueuedSuccessfully = await enqueueResearch(
+      const result = await enqueueResearch(
         run.id,
         companyId,
         profile.workspace_id
       );
 
-      if (!enqueuedSuccessfully) {
+      if (!result.success) {
         console.warn(
-          `[research] Run ${run.id} created but not enqueued - TRIGGER_API_KEY not configured`
+          `[research] Run ${run.id} created but not enqueued - ${result.reason || "unknown reason"}`
         );
+      } else {
+        enqueuedSuccessfully = true;
       }
     } catch (error) {
       console.error("[research] Failed to enqueue task:", error);

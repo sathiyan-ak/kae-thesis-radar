@@ -1,100 +1,115 @@
 # Kae Thesis Radar
 
-A deployable investment-research work sample that converts Kae Capital’s public **“What To Build: Healthtech”** article into a repeatable startup-sourcing and first-pass diligence workflow.
+Private investment-research operating system for venture analysts.
 
-> Independent project. Not affiliated with or endorsed by Kae Capital. Kae explicitly describes the article as a thought piece rather than an investment thesis; the product preserves that distinction.
+## Overview
 
-## What it proves
+Kae Thesis Radar is a SaaS work sample that allows analysts to:
 
-- **Research judgement:** 20 public opportunity areas are converted into structured fields: buyer, business model, founder-market fit, timing, regulation and failure mode.
-- **Investment workflow:** startup screens separate positive evidence, bear-case risks, missing facts and diligence questions.
-- **Transparent scoring:** six disclosed dimensions and weights; no hidden LLM score.
-- **Shipping ability:** Next.js App Router UI, Tavily-powered live research, optional Supabase persistence and print-ready company screens.
+1. Browse Kae's 20 healthtech opportunity areas
+2. Add or discover companies
+3. Launch repeatable research runs across 15 research stages
+4. Review claim-level evidence with source attribution
+5. Produce deterministic, versioned investment scores
+6. Override scores with audit trails
+7. Export company screens
 
-## Product surfaces
-
-1. **Overview** — opportunity, pipeline and recommendation scorecard.
-2. **Thesis map** — all 20 healthtech ideas with density and regulatory filters.
-3. **Startup pipeline** — 12 seeded Indian healthtech screens with source links.
-4. **Live screen** — search any company through Tavily and score it against one opportunity.
-5. **Company screen** — evidence, bear case, score breakdown and five meeting questions.
-6. **Methodology** — weights, guardrails and analyst loop.
-
-## Run locally
+## Quick Start
 
 ```bash
 npm install
 cp .env.example .env.local
+# Add Supabase credentials to .env.local
+npx supabase db push  # Apply migrations
+npx supabase db seed  # Load 20 opportunities + 12 demo companies
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Visit http://localhost:3000/login and sign up.
 
-The app works without keys using the 12 seed records. In **Live screen**, enter a seeded name such as `Qure.ai`, `Niramai`, `Dozee`, `Augnito`, `Eka Care`, `BeatO`, `Healthians`, `Redcliffe Labs`, `Wysa`, `Zyla Health`, `Tata 1mg` or `MedGenome`.
+## Architecture
 
-## Enable live Tavily research
+**Tech Stack**
+- Next.js 15.5+ (App Router, React Server Components)
+- Supabase (Postgres, RLS, Auth, Realtime)
+- Tavily (search), GitHub (founder research)
+- Trigger.dev (async research orchestration — optional)
 
-Add to `.env.local`:
+**Database** (12 tables with RLS)
+- workspaces, profiles, thesis_opportunities, companies
+- research_runs, provider_runs, sources, source_snapshots
+- claims, scorecards, analyst_notes, diligence_questions
+- audit_events
 
-```env
-TAVILY_API_KEY=tvly-your-key
+**Routes**
+- `/login` → email/OAuth
+- `/app` → dashboard
+- `/app/dealflow` → company pipeline
+- `/app/companies/[id]` → detail + research history
+- `/app/research/[runId]` → progress with provider stages
+- `/app/methodology` → documentation
+
+**Research Pipeline**
+1. Analyst enqueues research run (POST /api/research/enqueue)
+2. Frontend polls progress (GET /api/research/[runId]/progress)
+3. Stages execute: Tavily search → claim extraction → scoring
+4. Analyst reviews run, overrides score (with audit log), exports screen
+
+**Scoring Rubric** (6 weighted dimensions)
+- Thesis Fit (24%), Founder-Market Fit (18%), Market Timing (16%)
+- Distribution (16%), Defensibility (14%), Capital Efficiency (12%)
+- Recommendation: Meet (≥75), Monitor (50–74), Pass (<50)
+
+**Source Tiers**
+- Tier 1: official pages, registries, peer-reviewed papers (required for material claims)
+- Tier 2: publications, investor announcements
+- Tier 3: databases, sector directories
+- Tier 4: search snippets, social posts
+
+## Environment Variables
+
+```
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://...supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+
+TAVILY_API_KEY=tvly-...
+OLLAMA_API_URL=http://localhost:11434 (optional)
 ```
 
-The server route sends one advanced Tavily search, retains the returned sources and calculates a deterministic score from visible signals. The API key never reaches the browser.
-
-## Enable Supabase persistence
-
-1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the SQL editor.
-3. Add:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-publishable-or-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-server-secret
-```
-
-The service-role key is used only inside server route handlers. Do not expose it in client code.
-
-## Deploy on Vercel
+## Development
 
 ```bash
-npm run build
+npm run dev       # localhost:3000
+npm run build     # production build
+npm run lint      # ESLint
+npm run test      # Vitest unit tests
 ```
 
-Then import the repository into Vercel and add the environment variables under **Project Settings → Environment Variables**. The project does not require Supabase to deploy; Supabase only adds persistent saved screens.
+## Deployment
 
-## Scoring rubric
+Push to GitHub → Actions runs lint/test/build → Vercel deploys.
 
-| Dimension | Weight |
-|---|---:|
-| Thesis fit | 24% |
-| Founder-market fit | 18% |
-| Market timing | 16% |
-| Distribution | 16% |
-| Defensibility | 14% |
-| Capital efficiency | 12% |
+```bash
+git push origin main
+vercel deploy --prod
+# Set env vars in Vercel dashboard
+# Push migrations: supabase db push --remote
+```
 
-Decision thresholds:
+## Limitations
 
-- **Meet:** 76+
-- **Monitor:** 58–75
-- **Pass:** below 58
+- No payment paths (internal tool only)
+- Optional providers degrade gracefully if unconfigured
+- Trigger.dev integration requires account setup
+- No multi-workspace team collaboration (single analyst per workspace)
 
-A score is only a research prioritisation device. The investment decision remains human.
+## Demo Data
 
-## Suggested 90-second demo
+20 Kae healthtech opportunities + 12 companies (seeded on init):
+Qure.ai, Niramai, Dozee, Augnito, Eka Care, BeatO, Wysa, MedGenome, Arpit Health, Fortis Hospital, Pristyn Care, MedTech Innovations.
 
-1. Open Overview and explain that the public article has been converted into 20 searchable opportunity records.
-2. Open Thesis map and show a white-space card, including founder fit and the failure mode.
-3. Open Startup pipeline and select a high-scoring company.
-4. Show the bear case and five diligence questions—not only the positive case.
-5. Return to Live screen, enter a new startup, select the closest opportunity and run Tavily research.
-6. End on Methodology to show that the score is transparent and challengeable.
+---
 
-## Data policy
-
-- Seed records are deliberately labelled as work-sample research and should be refreshed.
-- The product does not invent revenue, valuation, market size or unit economics.
-- Unknown facts are converted into diligence questions.
-- Primary company and regulatory sources should replace search summaries before real investment use.
+**Disclaimer**: Independent research work sample. Not affiliated with Kae Capital. Not an investment recommendation.

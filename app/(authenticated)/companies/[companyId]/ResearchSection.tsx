@@ -25,32 +25,9 @@ export default function ResearchSection({
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleStartResearch = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/research/enqueue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companyId,
-          thesisOpportunityId,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || `Failed to enqueue research (${response.status})`);
-      }
-
-      const { runId } = await response.json();
-      router.push(`/app/research/${runId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
+  const handleStartResearch = () => {
+    // Live research disabled in this demonstration
+    setError("Live research is unavailable in this demonstration. Full async research execution requires Trigger.dev deployment.");
   };
 
   return (
@@ -59,10 +36,11 @@ export default function ResearchSection({
         <h2 className="text-lg font-semibold text-slate-900">Research History</h2>
         <button
           onClick={handleStartResearch}
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-400 transition-colors"
+          disabled={true}
+          title="Live research unavailable in demonstration"
+          className="px-4 py-2 bg-slate-400 text-white rounded-lg font-medium cursor-not-allowed transition-colors"
         >
-          {loading ? "Starting..." : "Start Research"}
+          Live Research Unavailable
         </button>
       </div>
 

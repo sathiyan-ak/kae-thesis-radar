@@ -59,18 +59,25 @@ export async function POST(request: NextRequest) {
       const result = await enqueueResearch(
         run.id,
         companyId,
-        profile.workspace_id
+        profile.workspace_id,
+        run.idempotency_key
       );
 
       if (!result.success) {
-        // This should be rare since we checked TRIGGER_SECRET_KEY above
-        // but handle gracefully without deleting the run
+        // Trigger.dev unavailable after DB insertion
+        // Mark run as failed to avoid orphaned queued records
+        const { updateResearchRunStatus } = await import(
+          "@/lib/research/orchestrator"
+        );
+        await updateResearchRunStatus(
+          run.id,
+          "failed",
+          "enqueue_failed: Trigger.dev not configured"
+        );
+
         return NextResponse.json(
-          {
-            error: "Research execution failed",
-            reason: result.reason,
-          },
-          { status: 500 }
+          { error: "Research execution unavailable" },
+          { status: 503 }
         );
       }
 
@@ -84,10 +91,22 @@ export async function POST(request: NextRequest) {
         { status: 202 }
       );
     } catch (error) {
+      // Trigger.dev network/auth failure after DB insertion
+      // Mark run as failed to avoid orphaned queued records
+      const { updateResearchRunStatus } = await import(
+        "@/lib/research/orchestrator"
+      );
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+      await updateResearchRunStatus(
+        run.id,
+        "failed",
+        `enqueue_failed: ${errorMsg}`
+      );
+
       console.error("[research] Failed to enqueue task:", error);
       return NextResponse.json(
-        { error: "Failed to enqueue research task" },
-        { status: 500 }
+        { error: "Research execution failed. Please try again later." },
+        { status: 503 }
       );
     }
   } catch (error) {

@@ -1,4 +1,5 @@
 import { runResearch } from "@/trigger/research";
+import { idempotencyKeys } from "@trigger.dev/sdk";
 
 export async function enqueueResearch(
   runId: string,
@@ -16,8 +17,13 @@ export async function enqueueResearch(
   }
 
   try {
-    // Call the task with idempotency options
-    // Trigger.dev returns existing handle when same key is reused within TTL
+    // Create global-scoped idempotency key for deduplication across separate HTTP requests
+    // In Trigger.dev v4.3.1+, raw strings default to "run" scope
+    // Explicit global scope ensures duplicate enqueue calls return same task handle
+    const triggerKey = await idempotencyKeys.create(idempotencyKey || runId, {
+      scope: "global",
+    });
+
     const handle = await runResearch.trigger(
       {
         runId,
@@ -25,7 +31,7 @@ export async function enqueueResearch(
         workspaceId,
       },
       {
-        idempotencyKey: idempotencyKey || runId,
+        idempotencyKey: triggerKey,
         idempotencyKeyTTL: "10m",
       }
     );
@@ -33,7 +39,7 @@ export async function enqueueResearch(
     console.log("[research] Task enqueued successfully", {
       runId,
       taskHandle: handle.id,
-      idempotencyKey,
+      idempotencyKey: idempotencyKey,
     });
 
     return {

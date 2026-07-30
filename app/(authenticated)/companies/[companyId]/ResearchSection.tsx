@@ -21,34 +21,26 @@ export default function ResearchSection({
   thesisOpportunityId,
   runs,
 }: ResearchSectionProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
-  const handleStartResearch = () => {
-    // Live research disabled in this demonstration
-    setError("Live research is unavailable in this demonstration. Full async research execution requires Trigger.dev deployment.");
-  };
 
   return (
     <section className="rounded-lg border border-slate-200 bg-white p-8">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <h2 className="text-lg font-semibold text-slate-900">Research History</h2>
+      </div>
+
+      <div className="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
         <button
-          onClick={handleStartResearch}
           disabled={true}
           title="Live research unavailable in demonstration"
-          className="px-4 py-2 bg-slate-400 text-white rounded-lg font-medium cursor-not-allowed transition-colors"
+          className="px-4 py-2 bg-slate-400 text-white rounded-lg font-medium cursor-not-allowed"
         >
           Live Research Unavailable
         </button>
+        <p className="text-sm text-slate-600 mt-3">
+          Live research unavailable in this demonstration. Seeded evidence screens remain available for review.
+        </p>
       </div>
-
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
 
       {runs && runs.length > 0 ? (
         <div className="space-y-2">

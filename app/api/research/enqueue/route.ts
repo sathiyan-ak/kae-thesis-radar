@@ -13,6 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // CHECK TRIGGER.dev AVAILABILITY FIRST, BEFORE CREATING RUNS
+    // This prevents orphaned queued records when Trigger.dev is unavailable
+    if (!process.env.TRIGGER_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "Research provider unavailable. Please try again later." },
+        { status: 503 }
+      );
+    }
+
     const supabase = await createClient();
     const {
       data: { user },
@@ -35,7 +44,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create research run
+    // Create or fetch idempotent research run
+    // Returns existing run if already queued/running, or creates new one
     const run = await createResearchRun(
       profile.workspace_id,
       companyId,
@@ -43,7 +53,7 @@ export async function POST(request: NextRequest) {
       user.id
     );
 
-    // Enqueue Trigger.dev task - required for research execution
+    // Enqueue Trigger.dev task
     try {
       const { enqueueResearch } = await import("@/lib/trigger/research");
       const result = await enqueueResearch(
@@ -53,12 +63,14 @@ export async function POST(request: NextRequest) {
       );
 
       if (!result.success) {
+        // This should be rare since we checked TRIGGER_SECRET_KEY above
+        // but handle gracefully without deleting the run
         return NextResponse.json(
           {
-            error: "Research execution is not configured",
+            error: "Research execution failed",
             reason: result.reason,
           },
-          { status: 503 }
+          { status: 500 }
         );
       }
 

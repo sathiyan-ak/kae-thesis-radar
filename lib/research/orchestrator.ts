@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export type ResearchRunStatus =
   | "queued"
@@ -12,11 +13,30 @@ export async function createResearchRun(
   workspaceId: string,
   companyId: string,
   thesisOpportunityId: string | null,
-  userId: string
+  userId: string,
+  methodologyVersion: string = "1.0.0"
 ) {
   const supabase = await createClient();
-  const idempotencyKey = `${workspaceId}-${companyId}-${thesisOpportunityId}-${Date.now()}`;
 
+  // Deterministic idempotency key: workspace + company + thesis + methodology
+  const thesisKey = thesisOpportunityId || "no-thesis";
+  const idempotencyKey = `${workspaceId}:${companyId}:${thesisKey}:${methodologyVersion}`;
+
+  // Check for existing queued or running research with same idempotency key
+  const { data: existing } = await supabase
+    .from("research_runs")
+    .select("id, status")
+    .eq("workspace_id", workspaceId)
+    .eq("idempotency_key", idempotencyKey)
+    .in("status", ["queued", "running"])
+    .single();
+
+  if (existing) {
+    // Return existing run — idempotent operation
+    return existing;
+  }
+
+  // Create new research run
   const { data, error } = await supabase
     .from("research_runs")
     .insert({
@@ -26,14 +46,12 @@ export async function createResearchRun(
       status: "queued",
       idempotency_key: idempotencyKey,
       requested_by: userId,
+      methodology_version: methodologyVersion,
     })
     .select()
     .single();
 
   if (error) throw error;
-
-  // In production, this would enqueue a Trigger.dev task
-  // For now, return run ID and caller must implement async execution
   return data;
 }
 
@@ -96,9 +114,15 @@ export async function recordProviderRun(
     error_message?: string;
   }
 ) {
-  const supabase = await createClient();
+  // Use service-role client to bypass RLS for system-owned table
+  const admin = getSupabaseAdmin();
+  if (!admin) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY not configured; cannot record provider run"
+    );
+  }
 
-  const { error } = await supabase.from("provider_runs").insert({
+  const { error } = await admin.from("provider_runs").insert({
     research_run_id: researchRunId,
     provider,
     operation,

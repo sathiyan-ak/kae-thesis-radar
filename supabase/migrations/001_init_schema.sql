@@ -215,6 +215,11 @@ CREATE INDEX idx_companies_slug ON companies(workspace_id, slug);
 CREATE INDEX idx_research_runs_workspace ON research_runs(workspace_id);
 CREATE INDEX idx_research_runs_company ON research_runs(company_id);
 CREATE INDEX idx_research_runs_status ON research_runs(status);
+
+-- Partial unique index: prevent duplicate queued/running jobs with same idempotency key
+CREATE UNIQUE INDEX idx_research_runs_idempotency_active
+  ON research_runs(workspace_id, idempotency_key)
+  WHERE status IN ('queued', 'running');
 CREATE INDEX idx_provider_runs_research ON provider_runs(research_run_id);
 CREATE INDEX idx_sources_domain ON sources(domain);
 CREATE INDEX idx_source_snapshots_research ON source_snapshots(research_run_id);
@@ -286,14 +291,10 @@ CREATE POLICY "Users can update research runs"
   ON research_runs FOR UPDATE
   USING (workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid()));
 
--- Provider runs: inherit from research run
+-- Provider runs: system-owned, read-only for authenticated users
 CREATE POLICY "Users can view provider runs"
   ON provider_runs FOR SELECT
   USING (research_run_id IN (SELECT id FROM research_runs WHERE workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid())));
-
-CREATE POLICY "Service role can create provider runs (workspace-scoped)"
-  ON provider_runs FOR INSERT
-  WITH CHECK (research_run_id IN (SELECT id FROM research_runs WHERE workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid())));
 
 -- Sources: shared across all (deduplication)
 CREATE POLICY "Sources are readable"
@@ -342,11 +343,7 @@ CREATE POLICY "Users can view diligence questions"
   ON diligence_questions FOR SELECT
   USING (research_run_id IN (SELECT id FROM research_runs WHERE workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid())));
 
--- Audit events: workspace-scoped
+-- Audit events: system-owned, read-only for authenticated users
 CREATE POLICY "Users can view workspace audit events"
   ON audit_events FOR SELECT
   USING (workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid()));
-
-CREATE POLICY "Service role can insert audit events (workspace-scoped)"
-  ON audit_events FOR INSERT
-  WITH CHECK (workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid()));

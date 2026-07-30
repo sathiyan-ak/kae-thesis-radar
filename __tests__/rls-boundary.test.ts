@@ -15,12 +15,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
  */
 
 describe.skip("RLS Boundary Tests", () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (!serviceRoleKey || !supabaseUrl) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL required");
-  }
+  // These tests require a real Supabase instance
+  // Skipped by default; run only when SUPABASE_SERVICE_ROLE_KEY is set
 
   it("User1 cannot read User2's workspace data", async () => {
     // Setup: Create two users in different workspaces

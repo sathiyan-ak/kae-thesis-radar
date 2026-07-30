@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import ResearchSection from "./ResearchSection";
 
 export default async function CompanyDetailPage(props: {
   params: Promise<{ companyId: string }>;
@@ -13,7 +14,7 @@ export default async function CompanyDetailPage(props: {
     .select(
       `
       id, canonical_name, domain, description, headquarters, founded_year,
-      thesis_opportunities(title),
+      thesis_opportunities(id, title),
       research_runs(id, status, total_score, completed_at),
       analyst_notes(body, author_id, created_at)
     `
@@ -67,32 +68,11 @@ export default async function CompanyDetailPage(props: {
 
       <div className="space-y-8">
         {/* Research runs */}
-        <section className="rounded-lg border border-slate-200 bg-white p-8">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Research History</h2>
-          {company.research_runs && company.research_runs.length > 0 ? (
-            <div className="space-y-2">
-              {company.research_runs.map(
-                (run: { id: string; status: string; total_score: number; completed_at: string }) => (
-                  <a
-                    key={run.id}
-                    href={`/app/research/${run.id}`}
-                    className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-900">Run {run.id.substring(0, 8)}</p>
-                      <p className="text-sm text-slate-600">{run.status}</p>
-                    </div>
-                    {run.total_score && (
-                      <p className="text-2xl font-bold text-slate-900">{run.total_score.toFixed(0)}</p>
-                    )}
-                  </a>
-                )
-              )}
-            </div>
-          ) : (
-            <p className="text-slate-600">No research runs yet</p>
-          )}
-        </section>
+        <ResearchSection
+          companyId={params.companyId}
+          thesisOpportunityId={company.thesis_opportunities ? (Array.isArray(company.thesis_opportunities) ? company.thesis_opportunities[0]?.id : (company.thesis_opportunities as any)?.id) : null}
+          runs={company.research_runs || []}
+        />
 
         {/* Analyst notes */}
         <section className="rounded-lg border border-slate-200 bg-white p-8">

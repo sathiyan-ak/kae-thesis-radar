@@ -291,9 +291,9 @@ CREATE POLICY "Users can view provider runs"
   ON provider_runs FOR SELECT
   USING (research_run_id IN (SELECT id FROM research_runs WHERE workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid())));
 
-CREATE POLICY "Service role can create provider runs"
+CREATE POLICY "Service role can create provider runs (workspace-scoped)"
   ON provider_runs FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (research_run_id IN (SELECT id FROM research_runs WHERE workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid())));
 
 -- Sources: shared across all (deduplication)
 CREATE POLICY "Sources are readable"
@@ -347,6 +347,6 @@ CREATE POLICY "Users can view workspace audit events"
   ON audit_events FOR SELECT
   USING (workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid()));
 
-CREATE POLICY "Service role can insert audit events"
+CREATE POLICY "Service role can insert audit events (workspace-scoped)"
   ON audit_events FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (workspace_id IN (SELECT workspace_id FROM profiles WHERE id = auth.uid()));

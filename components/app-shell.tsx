@@ -42,7 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/app/settings" className="user">
             <Settings size={16} /><span>Settings</span>
           </Link>
-          <div className="user"><span className="avatar">AK</span><span>Arya Kapoor<small>Investment team</small></span></div>
+          <div className="user"><span className="avatar">DA</span><span>Demo Analyst<small>Work sample reviewer</small></span></div>
         </div>
       </aside>
       <main className="main">

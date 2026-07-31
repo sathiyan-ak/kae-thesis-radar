@@ -10,7 +10,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run dev -- --port 3100",
-    url: "http://localhost:3100/dealflow",
+    url: "http://localhost:3100/app/dealflow",
     reuseExistingServer: true,
     timeout: 120_000,
   },

@@ -9,19 +9,19 @@ import {
 } from "lucide-react";
 
 const nav = [
-  ["/", "Overview", CircleGauge],
-  ["/dealflow", "Dealflow", BriefcaseBusiness],
-  ["/companies", "Companies", Building2],
-  ["/thesis-map", "Thesis map", FlaskConical],
-  ["/research-runs", "Research runs", Activity],
-  ["/sources", "Sources", Database],
-  ["/methodology", "Methodology", BookOpen],
+  ["/app", "Overview", CircleGauge],
+  ["/app/dealflow", "Dealflow", BriefcaseBusiness],
+  ["/app/companies", "Companies", Building2],
+  ["/app/thesis", "Thesis map", FlaskConical],
+  ["/app/research", "Research runs", Activity],
+  ["/app/sources", "Sources", Database],
+  ["/app/methodology", "Methodology", BookOpen],
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
-  const current = nav.find(([href]) => href === "/" ? path === "/" : path.startsWith(href))?.[1] ?? "Workspace";
+  const current = nav.find(([href]) => href === "/app" ? path === "/app" : path.startsWith(href))?.[1] ?? "Workspace";
   return (
     <div className="app">
       <aside className={`sidebar ${open ? "open" : ""}`}>
@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="nav" aria-label="Primary">
           <div className="nav-label">Workspace</div>
           {nav.map(([href, label, Icon]) => (
-            <Link key={href} href={href} className={(href === "/" ? path === "/" : path.startsWith(href)) ? "active" : ""} onClick={() => setOpen(false)}>
+            <Link key={href} href={href} className={(href === "/app" ? path === "/app" : path.startsWith(href)) ? "active" : ""} onClick={() => setOpen(false)}>
               <Icon />{label}
             </Link>
           ))}
@@ -37,9 +37,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="sidebar-bottom">
           <div className="provider">
             <div className="provider-row"><strong>Provider status</strong><span className="dot" /></div>
-            <small>No live provider connected</small>
+            <small>Live research unavailable in this demonstration</small>
           </div>
-          <Link href="/settings" className="user">
+          <Link href="/app/settings" className="user">
             <Settings size={16} /><span>Settings</span>
           </Link>
           <div className="user"><span className="avatar">AK</span><span>Arya Kapoor<small>Investment team</small></span></div>

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("Dealflow is usable without page overflow at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/dealflow");
+  await page.goto("/app/dealflow");
 
   const metrics = await page.evaluate(() => {
     const search = document.querySelector<HTMLInputElement>('[aria-label="Search companies"]');

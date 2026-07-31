@@ -1,2 +1,5 @@
-import { PlaceholderView } from "@/components/views";
-export default function Page(){return <PlaceholderView title="Settings"/>}
+import { redirect } from "next/navigation";
+
+export default function Page() {
+  redirect("/app/settings");
+}

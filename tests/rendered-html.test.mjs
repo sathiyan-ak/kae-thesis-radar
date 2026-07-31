@@ -12,24 +12,25 @@ async function render(path = "/") {
   );
 }
 
-test("renders the independent healthtech work sample", async () => {
-  const response = await render();
+test("renders the independent healthtech work sample at the flattened app route", async () => {
+  const response = await render("/app");
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Opportunity Radar/);
   assert.match(html, /Independent work sample/);
   assert.match(html, /not affiliated with or endorsed by Kae Capital/i);
   assert.match(html, /What this demonstrates/);
+  assert.doesNotMatch(html, /Kae Radar|All systems operational|142|chatbot/i);
 });
 
 test("renders consistent dealflow and methodology disclosures", async () => {
   const [dealflow, methodology] = await Promise.all([
-    (await render("/dealflow")).text(),
-    (await render("/methodology")).text(),
+    (await render("/app/dealflow")).text(),
+    (await render("/app/methodology")).text(),
   ]);
   assert.match(dealflow, /Tata 1mg/);
   assert.match(dealflow, /NIRAMAI/);
   assert.match(dealflow, /Demo analyst recommendation/);
   assert.match(methodology, /Not Kae Capital’s investment thesis/i);
-  assert.doesNotMatch(`${dealflow}${methodology}`, /NorthGrid agreement|Grid flexibility|Industrial carbon/);
+  assert.doesNotMatch(`${dealflow}${methodology}`, /NorthGrid agreement|Grid flexibility|Industrial carbon|Kae Radar|All systems operational|chatbot/i);
 });

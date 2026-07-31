@@ -1,2 +1,5 @@
-import { DealflowView } from "@/components/views";
-export default function Page(){return <DealflowView/>}
+import { redirect } from "next/navigation";
+
+export default function Page() {
+  redirect("/app/dealflow");
+}

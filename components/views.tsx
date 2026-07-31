@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowDownToLine, ArrowRight, ChevronRight, CircleAlert, ExternalLink, Filter, RefreshCw, SlidersHorizontal, X } from "lucide-react";
 import { articleSource, candidates, opportunities, retrieved, type Candidate } from "@/lib/healthtech-data";
 
@@ -36,10 +36,11 @@ export function OverviewView() {
 
 export function DealflowView() {
   const router=useRouter(); const params=useSearchParams(); const [selected,setSelected]=useState<string[]>([]);
-  const query=(params.get("q")||"").trim(); const status=params.get("status")||"all"; const sort=params.get("sort")||"name-asc";
+  const [query,setQuery]=useState((params.get("q")||"").trim()); const [status,setStatus]=useState(params.get("status")||"all"); const [sort,setSort]=useState(params.get("sort")||"name-asc");
   const [columnsOpen,setColumnsOpen]=useState(false); const [exported,setExported]=useState(false);
   const defaultColumns=["opportunity","stage","status","recommendation","score","claims","freshness","owner","reviewed"];
   const [visibleColumns,setVisibleColumns]=useState<string[]>(defaultColumns);
+  useEffect(()=>{setQuery((params.get("q")||"").trim());setStatus(params.get("status")||"all");setSort(params.get("sort")||"name-asc");},[params]);
   const normalizedQuery=query.toLowerCase();
   const rows=useMemo(()=>candidates.filter(c=>{
     const matchesQuery=!normalizedQuery||[c.name,c.opportunity,c.status,c.recommendation].some(value=>value.toLowerCase().includes(normalizedQuery));
@@ -51,7 +52,7 @@ export function DealflowView() {
     if(sort==="reviewed-desc") return new Date(b.reviewed).getTime()-new Date(a.reviewed).getTime()||a.name.localeCompare(b.name);
     return a.name.localeCompare(b.name);
   }),[normalizedQuery,sort,status]);
-  const sync=(next:Record<string,string>)=>{const p=new URLSearchParams(params.toString());Object.entries(next).forEach(([k,v])=>v&&v!=="all"&&v!=="name-asc"?p.set(k,v):p.delete(k));router.replace(`/app/dealflow${p.toString()?`?${p}`:""}`,{scroll:false})};
+  const sync=(next:Record<string,string>)=>{if(next.q!==undefined)setQuery(next.q.trim());if(next.status!==undefined)setStatus(next.status);if(next.sort!==undefined)setSort(next.sort);const p=new URLSearchParams(params.toString());Object.entries(next).forEach(([k,v])=>v&&v.trim()&&v!=="all"&&v!=="name-asc"?p.set(k,v.trim()):p.delete(k));router.replace(`/app/dealflow${p.toString()?`?${p}`:""}`,{scroll:false})};
   const clearFilters=()=>{setSelected([]);router.replace("/app/dealflow",{scroll:false})};
   const escapeCsv=(value:string|number)=>`"${String(value).replaceAll('"','""')}"`;
   const exportCsv=()=>{if(!rows.length)return;const headers=["Company","Opportunity area","Stage","Screen status","Demo analyst recommendation","Demo evidence score","Verified claims","Last reviewed"];const csv=[headers.map(escapeCsv).join(","),...rows.map(c=>[c.name,c.opportunity,c.stage,c.status,c.recommendation,c.score,"1 / 1",c.reviewed].map(escapeCsv).join(","))].join("\r\n");const url=URL.createObjectURL(new Blob([`\uFEFF${csv}`],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="opportunity-radar-dealflow-2026-07-31.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);setExported(true);window.setTimeout(()=>setExported(false),1800)};

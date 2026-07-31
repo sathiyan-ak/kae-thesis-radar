@@ -241,7 +241,7 @@ const seeds: SeedCompany[] = [
     scores: { thesisFit: 65, founderMarketFit: 80, marketTiming: 86, distribution: 84, defensibility: 73, capitalEfficiency: 84 },
     evidence: [
       "Demonstrates Indian-built mental-health technology with enterprise reach.",
-      "The operating model combines software support and human care rather than relying only on a chatbot.",
+      "The operating model combines software support and human care rather than relying only on automated chat.",
       "Fit with Kae’s child and teen thesis requires dedicated clinical pathways and school distribution evidence.",
     ],
     risks: [

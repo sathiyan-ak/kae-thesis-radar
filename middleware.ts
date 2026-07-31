@@ -2,6 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const publicDemoRoute =
+    pathname === "/" || pathname === "/app" || pathname.startsWith("/app/");
+
+  if (publicDemoRoute) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -24,14 +32,16 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data } = await supabase.auth.getSession();
-  const pathname = request.nextUrl.pathname;
   const demoUser = request.cookies.get("demo_user")?.value;
 
   // Check if authenticated: Supabase session OR demo_user cookie
   const isAuthenticated = !!data.session || !!demoUser;
 
-  // Redirect unauthenticated users to /login (except API routes and public paths)
-  if (!isAuthenticated && pathname.startsWith("/app")) {
+  const requiresAuth = false;
+
+  // The /app routes are a public, seeded work-sample demo. Auth endpoints remain
+  // available, but the demo surface must not fall back to a login placeholder.
+  if (!isAuthenticated && requiresAuth) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

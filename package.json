@@ -11,6 +11,7 @@
     "test": "vitest run __tests__",
     "test:watch": "vitest __tests__",
     "test:integration": "vitest run __tests__",
+    "test:responsive": "playwright test tests/dealflow-responsive.spec.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "trigger:dev": "trigger dev",

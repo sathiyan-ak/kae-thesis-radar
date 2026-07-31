@@ -1,4 +1,15 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
 export default function SettingsPage() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  };
+
   return (
     <div className="p-8 max-w-2xl">
       <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
@@ -49,7 +60,10 @@ export default function SettingsPage() {
 
         <section className="rounded-lg border border-slate-200 bg-white p-8">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Session</h2>
-          <button className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-900 hover:bg-slate-50">
+          <button
+            onClick={handleLogout}
+            className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-900 hover:bg-slate-50"
+          >
             Sign Out
           </button>
         </section>

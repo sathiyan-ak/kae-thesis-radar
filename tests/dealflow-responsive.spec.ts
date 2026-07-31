@@ -6,7 +6,7 @@ test("Dealflow is usable without page overflow at 390px", async ({ page }) => {
 
   const metrics = await page.evaluate(() => {
     const search = document.querySelector<HTMLInputElement>('[aria-label="Search companies"]');
-    const stage = document.querySelector<HTMLSelectElement>('[aria-label="Filter by stage"]');
+    const stage = document.querySelector<HTMLSelectElement>('[aria-label="Filter by status"]');
     const sort = document.querySelector<HTMLSelectElement>('[aria-label="Sort companies"]');
     const list = document.querySelector<HTMLElement>('[data-testid="mobile-company-list"]');
     const cards = document.querySelectorAll('[data-testid="mobile-company-card"]');

@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const navLinks = [
   ["Overview", /Opportunity Radar — Kae Healthtech Edition/, /\/app$/],
+  ["Research intelligence", /From papers to perspective/, /\/app\/intelligence/],
   ["Dealflow", /Healthtech dealflow/, /\/app\/dealflow/],
   ["Companies", /^Companies$/, /\/app\/companies$/],
   ["Thesis map", /20 healthtech opportunity areas/, /\/app\/thesis/],
@@ -152,4 +153,25 @@ test("global search supports keyboard navigation to company pages", async ({ pag
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/app\/companies\/dozee/);
   await expect(page.getByRole("heading", { name: "Dozee" })).toBeVisible();
+});
+
+test("research intelligence switches evidence type and exposes quality diagnostics", async ({ page }) => {
+  await page.goto("/app/intelligence");
+  await expect(page.getByText("311,181")).toBeVisible();
+  await page.getByRole("button", { name: "Keyphrases" }).click();
+  await expect(page.locator(".intel-bar-label", { hasText: "rough heston" })).toBeVisible();
+  await page.getByRole("tab", { name: "Signal evidence" }).click();
+  await page.getByLabel("Filter research signals").fill("capital markets");
+  await expect(page.getByRole("cell", { name: "capital markets kp:capital markets" })).toBeVisible();
+  await page.getByRole("tab", { name: "Data quality" }).click();
+  await expect(page.getByText("Missing abstracts")).toBeVisible();
+  await expect(page.getByText("Semantic Scholar")).toBeVisible();
+});
+
+test("research intelligence does not overflow on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/intelligence");
+  await expect(page.getByRole("heading", { name: "From papers to perspective." })).toBeVisible();
+  const width = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+  expect(width.scroll).toBe(width.client);
 });

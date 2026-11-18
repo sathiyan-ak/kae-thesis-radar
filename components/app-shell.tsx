@@ -5,12 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, BookOpen, BriefcaseBusiness, Building2, ChevronRight, CircleGauge,
-  Database, FlaskConical, Menu, Plus, Search, Settings, X
+  Database, FlaskConical, Menu, Plus, Radar, Search, Settings, X
 } from "lucide-react";
 import { candidates } from "@/lib/healthtech-data";
 
 const nav = [
   ["/app", "Overview", CircleGauge],
+  ["/app/intelligence", "Research intelligence", Radar],
   ["/app/dealflow", "Dealflow", BriefcaseBusiness],
   ["/app/companies", "Companies", Building2],
   ["/app/thesis", "Thesis map", FlaskConical],
